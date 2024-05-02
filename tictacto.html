@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <script type="text/javascript" src="../tictacto/js/clock.js"></script>
+        <title>틱택토 게임</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                background-color: #f0f0f0;
+            }
+
+            .container {
+                text-align: center;
+            }
+
+            table {
+                border-collapse: collapse;
+                margin: 20px auto;
+                background-color: #fff;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            }
+
+            td {
+                border: 1px solid #ccc;
+                width: 100px;
+                height: 100px;
+                text-align: center;
+                vertical-align: middle;
+                font-size: 48px;
+                font-weight: bold;
+                transition: background-color 0.3s;
+            }
+
+            td:hover {
+                background-color: #eee;
+                cursor: pointer;
+            }
+
+            .result {
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 20px;
+            }
+
+            .restart {
+                font-size: 18px;
+                padding: 10px 20px;
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+
+            .restart:hover {
+                background-color: #45a049;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="clock" id="clock"></div>
+            <div class="result"></div>
+            <table></table>
+            <button class="restart">게임 재시작</button>
+        </div>
+
+        <script>
+            const { body } = document;
+            let $table = document.createElement('table');
+            const $result = document.querySelector('.result');
+            const $restart = document.querySelector('.restart');
+            let rows = [];
+            let turn = 'O';
+
+            const checkWinner = (target) => {
+                const rowIndex = target.parentNode.rowIndex;
+                const cellIndex = target.cellIndex;
+
+                let hasWinner = false;
+                // 가로줄 검사
+                if (
+                    rows[rowIndex][0].textContent === turn &&
+                    rows[rowIndex][1].textContent === turn &&
+                    rows[rowIndex][2].textContent === turn &&
+                    rows[rowIndex][3].textContent === turn
+                ) {
+                    hasWinner = true;
+                }
+
+                //세로줄 검사
+                if (
+                    rows[0][cellIndex].textContent === turn &&
+                    rows[1][cellIndex].textContent === turn &&
+                    rows[2][cellIndex].textContent === turn &&
+                    rows[3][cellIndex].textContent === turn
+                ) {
+                    hasWinner = true;
+                }
+
+                //대각선 검사
+                if (
+                    rows[0][0].textContent === turn &&
+                    rows[1][1].textContent === turn &&
+                    rows[2][2].textContent === turn &&
+                    rows[3][3].textContent === turn
+                ) {
+                    hasWinner = true;
+                }
+
+                if (
+                    rows[0][3].textContent === turn &&
+                    rows[1][2].textContent === turn &&
+                    rows[2][1].textContent === turn &&
+                    rows[3][0].textContent === turn
+                ) {
+                    hasWinner = true;
+                }
+
+                return hasWinner;
+            };
+
+            const callback = (event) => {
+                if (event.target.textContent !== '') {
+                    console.log('빈칸이 아닙니다.');
+                    return;
+                }
+
+                console.log('빈칸 입니다.');
+                event.target.textContent = turn;
+                
+                const hasWinner = checkWinner(event.target);
+
+                //승자가 있으면
+                if (hasWinner) {
+                    $result.textContent = `${turn}님이 승리!`;
+                    $table.removeEventListener('click', callback);
+                    return;
+                }
+
+                //무승부 검사
+                const draw = rows.flat().every((cell) => cell.textContent);
+                if (draw) {
+                    $result.textContent = '무승부!';
+                    return;
+                }
+
+                turn = turn === 'X' ? 'O' : 'X'; //승자가 없으면
+            };
+
+            const resetGame = () => {
+                $result.textContent = '';
+                turn = 'O';
+                rows = [];
+                $table.removeEventListener('click', callback);
+                $table.remove();
+                $table = document.createElement('table');
+                for (let i = 0; i < 4; i++) {
+                    const $tr = document.createElement('tr');
+                    const cells = [];
+                    for (let j = 0; j < 4; j++) {
+                        const $td = document.createElement('td');
+                        cells.push($td);
+                        $tr.appendChild($td);
+                    }
+                    rows.push(cells);
+                    $table.appendChild($tr);
+                }
+                $table.addEventListener('click', callback);
+                document.querySelector('.container').insertBefore($table, $restart);
+            };
+
+            for (let i = 0; i < 4; i++) {
+                const $tr = document.createElement('tr');
+                const cells = [];
+                for (let j = 0; j < 4; j++) {
+                    const $td = document.createElement('td');
+                    cells.push($td);
+                    $tr.appendChild($td);
+                }
+                rows.push(cells);
+                $table.appendChild($tr);
+            }
+
+            $table.addEventListener('click', callback);
+            $restart.addEventListener('click', resetGame);
+            document.querySelector('.container').insertBefore($table, $restart);
+
+            //====================================================================//
+            // 현재 시간을 표시하는 함수
+            function displayClock() {
+                const now = new Date();
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                const seconds = now.getSeconds();
+
+                const timeString = `현재시각 : ${hours < 10 ? '0' + hours : hours}시 : ${minutes < 10 ? '0' + minutes : minutes}분 : ${seconds < 10 ? '0' + seconds : seconds}초`;
+                document.getElementById('clock').textContent = timeString;
+            }
+
+            // 1초마다 시간을 갱신
+            setInterval(displayClock, 1000);
+        </script>
+    </body>
+</html>
